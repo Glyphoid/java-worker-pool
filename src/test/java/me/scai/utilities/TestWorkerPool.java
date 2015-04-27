@@ -1,7 +1,12 @@
 package me.scai.utilities;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
+import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -18,8 +23,25 @@ class ConcreteWorker implements PooledWorker {
 }
 
 public class TestWorkerPool {
+    private WorkerClientInfo wkrClientInfo;
+
+    @Before
+    public void beforeTest() {
+        wkrClientInfo = null;
+        try {
+            wkrClientInfo = new WorkerClientInfo(
+                    InetAddress.getLocalHost(),
+                    InetAddress.getLocalHost().getHostName()
+            );
+        }
+        catch (UnknownHostException uhExc) {
+            wkrClientInfo = new WorkerClientInfo(null, null);
+        }
+    }
+
     @Test
     public void testWorkerPool() throws InterruptedException {
+
         final int maxNumWorkers = 8;
         final long workerTimeout = 4 * 1000;
 
@@ -29,11 +51,19 @@ public class TestWorkerPool {
         assertEquals(wp.getWorkerTimeout(), workerTimeout);
 
         /* Register a new worker */
-        String wkrId = wp.registerWorker(new ConcreteWorker());
+        String wkrId = wp.registerWorker(new ConcreteWorker(), wkrClientInfo);
+
         assertEquals(wp.getNumAvailableSlots(), maxNumWorkers - 1);
 
         /* Wait for a period of time that shouldn't lead to expiration */
         Thread.sleep(workerTimeout / 2);
+
+        /* Verify that getWorkersInfo works */
+        Map<String, WorkerClientInfo> workersInfo = wp.getWorkersInfo();
+        assertEquals(workersInfo.size(), 1);
+        assertNotNull(workersInfo.get(wkrId));
+        assertEquals(workersInfo.get(wkrId).getClientIPAddress(), wkrClientInfo.getClientIPAddress());
+        assertEquals(workersInfo.get(wkrId).getClientHostName(), wkrClientInfo.getClientHostName());
 
         /* Verify that the worker is not purged */
         List<String> purgeList = wp.purge();
@@ -52,7 +82,7 @@ public class TestWorkerPool {
 
         /* Exhaust the worker pool */
         for (int i = 0; i < maxNumWorkers; ++i) {
-            String newWkrId = wp.registerWorker(new ConcreteWorker());
+            String newWkrId = wp.registerWorker(new ConcreteWorker(), wkrClientInfo);
             assertNotNull(newWkrId);
 
             int numSlots = wp.getNumAvailableSlots();
@@ -60,7 +90,7 @@ public class TestWorkerPool {
         }
 
         /* If you attempt to register a new worker now, it should lead to failure */
-        String newWkrId1 = wp.registerWorker(new ConcreteWorker());
+        String newWkrId1 = wp.registerWorker(new ConcreteWorker(), wkrClientInfo);
         assertNull(newWkrId1);
 
         /* Wait for all workers to expire */

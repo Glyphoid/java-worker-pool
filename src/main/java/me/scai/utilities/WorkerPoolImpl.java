@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -18,13 +19,23 @@ public class WorkerPoolImpl implements WorkerPool {
     private AtomicInteger maxNumWorkers = new AtomicInteger();  /* The maximum number of workers */
     private AtomicLong workerTimeoutMillis = new AtomicLong();  /* Timeout for workers */
 
-    private Map<String, PooledWorker> workers  = new ConcurrentHashMap<>();
-    private Map<String, Date> workerTimestamps = new ConcurrentHashMap<>();
+    private Map<String, PooledWorker> workers = new ConcurrentHashMap<>();
+    private Map<String, WorkerClientInfo> workersInfo = new ConcurrentHashMap<>();
+    private Map<String, Date> workerCreatedTimestamps = new ConcurrentHashMap<>(); /* Time stamps of creation */
+    private Map<String, Date> workerTimestamps = new ConcurrentHashMap<>(); /* Time stamps of last usage */
 
     /* For keeping track of purged workers */
-    private Map<String, PooledWorker> purgedWorkers = new ConcurrentHashMap<>();
+    private ConcurrentLinkedDeque<String> purgedWorkers = new ConcurrentLinkedDeque<>();
+//    private Map<String, PooledWorker> purgedWorkers = new ConcurrentHashMap<>();
+    private Map<String, WorkerClientInfo> purgedWorkersInfo = new ConcurrentHashMap<>();
     private Map<String, Date> purgedTimestamps = new ConcurrentHashMap<>();
 
+    private ConcurrentLinkedDeque<String> nonPurgeRemovedWorkers = new ConcurrentLinkedDeque<>();
+//    private Map<String, PooledWorker> nonPurgeRemovedWorkers = new ConcurrentHashMap<>();
+    private Map<String, WorkerClientInfo> nonPurgeRemovedWorkersInfo = new ConcurrentHashMap<>();
+    private Map<String, Date> nonPurgeRemovedTimestamps = new ConcurrentHashMap<>();
+
+    private int numEverCreatedWorkers = 0;
 
     /* Constructor */
     public WorkerPoolImpl(final int tMaxNumWorkers, final long tWorkerTimeoutMillis) {
@@ -36,7 +47,7 @@ public class WorkerPoolImpl implements WorkerPool {
     /* @return    Worker ID (UUID) if registration is successful
      *            null if registration is unsuccessful ()
      */
-    public synchronized String registerWorker(PooledWorker wkr) {
+    public synchronized String registerWorker(PooledWorker wkr, WorkerClientInfo wkrClientInfo) {
         purge();
 
         String newWkrId = null;
@@ -44,23 +55,55 @@ public class WorkerPoolImpl implements WorkerPool {
             newWkrId = UUID.randomUUID().toString();
 
             workers.put(newWkrId, wkr);
-            workerTimestamps.put(newWkrId, new Date()); /* Initial timestamp is the time of registration */
+            workersInfo.put(newWkrId, wkrClientInfo);
+
+            Date now = new Date();
+            workerCreatedTimestamps.put(newWkrId, now);
+            workerTimestamps.put(newWkrId, now);         /* Initial timestamp is the time of registration */
+
+            numEverCreatedWorkers ++;
         }
 
         return newWkrId;
     }
 
-    @Override
-    public synchronized void removeWorker(String wkrId) {
+    private synchronized void removeWorker(String wkrId, boolean isPurge) {
+        /* Book-keeping */
+        WorkerClientInfo purgedClientInfo = workersInfo.get(wkrId);
+        if (isPurge) {
+            purgedWorkers.add(wkrId);
+//            purgedWorkers.put(wkrId, null); /* So that the worker can be garbage-collected */
+            purgedWorkersInfo.put(wkrId, purgedClientInfo);
+            purgedTimestamps.put(wkrId, new Date());
+        }
+        else {
+            nonPurgeRemovedWorkers.add(wkrId); /* So that the worker can be garbage-collected */
+//            nonPurgeRemovedWorkers.put(wkrId, null); /* So that the worker can be garbage-collected */
+            nonPurgeRemovedWorkersInfo.put(wkrId, purgedClientInfo);
+            nonPurgeRemovedTimestamps.put(wkrId, new Date());
+        }
+
+        /* Actually perform the purge */
         if (workers.containsKey(wkrId)) {
             workers.remove(wkrId);
+            workersInfo.remove(wkrId);
+            workerCreatedTimestamps.remove(wkrId);
             workerTimestamps.remove(wkrId);
         }
+
+
+    }
+
+    @Override
+    public synchronized void removeWorker(String wkrId) {
+        removeWorker(wkrId, false); /* The public-interface function is for non-purge (user) removal of workers */
     }
 
     @Override
     public synchronized void clearWorkers() {
         workers.clear();
+        workersInfo.clear();
+        workerCreatedTimestamps.clear();
         workerTimestamps.clear();
     }
 
@@ -95,11 +138,7 @@ public class WorkerPoolImpl implements WorkerPool {
             long ts = workerTimestamps.get(wkrId).getTime();
 
             if (now - ts > timeout) {
-                workers.remove(wkrId);
-                workerTimestamps.remove(wkrId);
-
-                purgedWorkers.put(wkrId, wkr);
-                purgedTimestamps.put(wkrId, nowDate);
+                removeWorker(wkrId, true);
 
                 purgeList.add(wkrId);
             }
@@ -114,28 +153,55 @@ public class WorkerPoolImpl implements WorkerPool {
     }
 
     @Override
-    public int getCurrNumWorkers() {
+    public synchronized int getCurrNumWorkers() {
         return workers.size();
     }
 
     @Override
-    public int getMaxNumWorkers() {
+    public synchronized int getMaxNumWorkers() {
         return maxNumWorkers.get();
     }
 
     @Override
-    public void setMaxNumWorkers(int tMaxNumWorkers) {
+    public synchronized void setMaxNumWorkers(int tMaxNumWorkers) {
         maxNumWorkers.set(tMaxNumWorkers);
     }
 
     @Override
-    public long getWorkerTimeout() {
+    public synchronized long getWorkerTimeout() {
         return workerTimeoutMillis.get();
     }
 
     @Override
-    public void setWorkerTimeout(long timeoutMillis) {
+    public synchronized void setWorkerTimeout(long timeoutMillis) {
         workerTimeoutMillis.set(timeoutMillis);
     }
 
+    @Override
+    public synchronized Map<String, WorkerClientInfo> getWorkersInfo() {
+        purge();
+
+        return workersInfo;
+    }
+
+    @Override
+    public synchronized Date getCreatedTimestamp(String workerId) {
+        return workerCreatedTimestamps.get(workerId);
+    }
+
+    @Override
+    public synchronized Date getLastUseTimestamp(String workerId) {
+        return workerTimestamps.get(workerId);
+    }
+
+
+    @Override
+    public synchronized int getNumEverCreatedWorkers() {
+        return numEverCreatedWorkers;
+    }
+
+    @Override
+    public synchronized int getNumPurgedWorkers() {
+        return purgedWorkers.size();
+    }
 }

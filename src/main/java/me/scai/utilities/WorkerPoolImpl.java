@@ -68,23 +68,25 @@ public class WorkerPoolImpl implements WorkerPool {
     }
 
     private synchronized void removeWorker(String wkrId, boolean isPurge) {
-        /* Book-keeping */
-        WorkerClientInfo purgedClientInfo = workersInfo.get(wkrId);
-        if (isPurge) {
-            purgedWorkers.add(wkrId);
-//            purgedWorkers.put(wkrId, null); /* So that the worker can be garbage-collected */
-            purgedWorkersInfo.put(wkrId, purgedClientInfo);
-            purgedTimestamps.put(wkrId, new Date());
-        }
-        else {
-            nonPurgeRemovedWorkers.add(wkrId); /* So that the worker can be garbage-collected */
-//            nonPurgeRemovedWorkers.put(wkrId, null); /* So that the worker can be garbage-collected */
-            nonPurgeRemovedWorkersInfo.put(wkrId, purgedClientInfo);
-            nonPurgeRemovedTimestamps.put(wkrId, new Date());
-        }
+
 
         /* Actually perform the purge */
         if (workers.containsKey(wkrId)) {
+            /* Book-keeping */
+            WorkerClientInfo purgedClientInfo = workersInfo.get(wkrId);
+
+            /* Do not preserve obsolete reference, so that the worker can be garbage-collected */
+            if (isPurge) {
+                purgedWorkers.add(wkrId);
+                purgedWorkersInfo.put(wkrId, purgedClientInfo);
+                purgedTimestamps.put(wkrId, new Date());
+            }
+            else {
+                nonPurgeRemovedWorkers.add(wkrId); /* So that the worker can be garbage-collected */
+                nonPurgeRemovedWorkersInfo.put(wkrId, purgedClientInfo);
+                nonPurgeRemovedTimestamps.put(wkrId, new Date());
+            }
+
             workers.remove(wkrId);
             workersInfo.remove(wkrId);
             workerCreatedTimestamps.remove(wkrId);

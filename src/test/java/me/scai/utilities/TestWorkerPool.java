@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import me.scai.utilities.clienttypes.ClientTypeMajor;
+import me.scai.utilities.clienttypes.ClientTypeMinor;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -31,11 +33,13 @@ public class TestWorkerPool {
         try {
             wkrClientInfo = new WorkerClientInfo(
                     InetAddress.getLocalHost(),
-                    InetAddress.getLocalHost().getHostName()
+                    InetAddress.getLocalHost().getHostName(),
+                    ClientTypeMajor.API,
+                    ClientTypeMinor.API.UnitTest
             );
         }
         catch (UnknownHostException uhExc) {
-            wkrClientInfo = new WorkerClientInfo(null, null);
+            wkrClientInfo = new WorkerClientInfo(null, null, ClientTypeMajor.API, ClientTypeMinor.API.UnitTest);
         }
     }
 

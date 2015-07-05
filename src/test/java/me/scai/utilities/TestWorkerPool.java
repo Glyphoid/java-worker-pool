@@ -35,11 +35,11 @@ public class TestWorkerPool {
                     InetAddress.getLocalHost(),
                     InetAddress.getLocalHost().getHostName(),
                     ClientTypeMajor.API,
-                    ClientTypeMinor.API.UnitTest
+                    ClientTypeMinor.API_UnitTest
             );
         }
         catch (UnknownHostException uhExc) {
-            wkrClientInfo = new WorkerClientInfo(null, null, ClientTypeMajor.API, ClientTypeMinor.API.UnitTest);
+            wkrClientInfo = new WorkerClientInfo(null, null, ClientTypeMajor.API, ClientTypeMinor.API_UnitTest);
         }
     }
 
@@ -63,7 +63,7 @@ public class TestWorkerPool {
         Thread.sleep(workerTimeout / 2);
 
         /* Verify that getWorkersInfo works */
-        Map<String, WorkerClientInfo> workersInfo = wp.getWorkersInfo();
+        Map<String, WorkerClientInfo> workersInfo = wp.getWorkersClientInfo();
         assertEquals(workersInfo.size(), 1);
         assertNotNull(workersInfo.get(wkrId));
         assertEquals(workersInfo.get(wkrId).getClientIPAddress(), wkrClientInfo.getClientIPAddress());

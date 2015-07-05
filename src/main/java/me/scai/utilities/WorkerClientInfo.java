@@ -9,7 +9,7 @@ import java.net.InetAddress;
 
 public class WorkerClientInfo {
     private ClientTypeMajor clientTypeMajor;
-    private int clientTypeMinor;
+    private ClientTypeMinor clientTypeMinor;
     private String clientPlatformVersion;
     private String clientAppVersion;
 
@@ -21,7 +21,7 @@ public class WorkerClientInfo {
     public WorkerClientInfo(final InetAddress clientIPAddress,
                             final String clientHostName,
                             final ClientTypeMajor clientTypeMajor,
-                            final int clientTypeMinor) {
+                            final ClientTypeMinor clientTypeMinor) {
         this.clientIPAddress  = clientIPAddress;
         this.clientHostName   = clientHostName;
 
@@ -32,7 +32,7 @@ public class WorkerClientInfo {
     public WorkerClientInfo(final InetAddress clientIPAddress,
                             final String clientHostName,
                             final ClientTypeMajor clientTypeMajor,
-                            final int clientTypeMinor,
+                            final ClientTypeMinor clientTypeMinor,
                             final String clientPlatformVersion,
                             final String clientAppVersion) {
         this(clientIPAddress, clientHostName, clientTypeMajor, clientTypeMinor);
@@ -44,7 +44,7 @@ public class WorkerClientInfo {
     public WorkerClientInfo(final InetAddress clientIPAddress,
                             final String clientHostName,
                             final ClientTypeMajor clientTypeMajor,
-                            final int clientTypeMinor,
+                            final ClientTypeMinor clientTypeMinor,
                             final String clientPlatformVersion,
                             final String clientAppVersion,
                             final JsonObject customClientData) {
@@ -71,7 +71,7 @@ public class WorkerClientInfo {
         return clientTypeMajor;
     }
 
-    public int getClientTypeMinor() {
+    public ClientTypeMinor getClientTypeMinor() {
         return clientTypeMinor;
     }
 

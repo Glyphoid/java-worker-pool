@@ -1,25 +1,23 @@
 package me.scai.utilities.clienttypes;
 
-public abstract class ClientTypeMinor {
-    public static final int None = 0;
+public enum ClientTypeMinor {
+    None,
 
-    public class API {
-        public static final int UnitTest = 11;
-        public static final int IntegTest = 12;
-    }
+    // API
+    API_UnitTest,
+    API_IntegTest,
 
-    public class DesktopBrowser {
-        public static final int CHROME = 21;
-        public static final int FIREFOX = 22;
-        public static final int SAFARI = 23;
-        public static final int IE = 24;
-        public static final int OPERA = 25;
-    }
+    // DesktopBrowser
+    DesktopBrowser_Chrome,
+    DesktopBrowser_Firefox,
+    DesktopBrowser_Safari,
+    DesktopBrowser_IE,
+    DesktopBrowser_Opera,
 
-    public class MobileBrowser {
-        public static final int CHROME = 31;
-        public static final int FIREFOX = 32;
-        public static final int SAFARI = 33;
-        public static final int OPERA = 34;
-    }
+    // MobileBrowser
+    MobileBrowser_Chrome,
+    MobileBrowser_Firefox,
+    MobileBrowser_Safari,
+    MobileBrowser_Opera,
+    MobileBrowser_Silk
 }

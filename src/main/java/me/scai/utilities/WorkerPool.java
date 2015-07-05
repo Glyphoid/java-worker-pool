@@ -80,7 +80,7 @@ public interface WorkerPool {
     public void setWorkerTimeout(long timeoutMillis);
 
     /* Get list of workers */
-    public Map<String, WorkerClientInfo> getWorkersInfo();
+    public Map<String, WorkerClientInfo> getWorkersClientInfo();
 
     /* Get timestamp of creation */
     public Date getCreatedTimestamp(String workerId);

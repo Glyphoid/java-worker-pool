@@ -20,7 +20,7 @@ public class WorkerPoolImpl implements WorkerPool {
     private AtomicLong workerTimeoutMillis = new AtomicLong();  /* Timeout for workers */
 
     private Map<String, PooledWorker> workers = new ConcurrentHashMap<>();
-    private Map<String, WorkerClientInfo> workersInfo = new ConcurrentHashMap<>();
+    private Map<String, WorkerClientInfo> workersClientInfo = new ConcurrentHashMap<>();
     private Map<String, Date> workerCreatedTimestamps = new ConcurrentHashMap<>(); /* Time stamps of creation */
     private Map<String, Date> workerTimestamps = new ConcurrentHashMap<>(); /* Time stamps of last usage */
 
@@ -55,7 +55,7 @@ public class WorkerPoolImpl implements WorkerPool {
             newWkrId = UUID.randomUUID().toString();
 
             workers.put(newWkrId, wkr);
-            workersInfo.put(newWkrId, wkrClientInfo);
+            workersClientInfo.put(newWkrId, wkrClientInfo);
 
             Date now = new Date();
             workerCreatedTimestamps.put(newWkrId, now);
@@ -73,7 +73,7 @@ public class WorkerPoolImpl implements WorkerPool {
         /* Actually perform the purge */
         if (workers.containsKey(wkrId)) {
             /* Book-keeping */
-            WorkerClientInfo purgedClientInfo = workersInfo.get(wkrId);
+            WorkerClientInfo purgedClientInfo = workersClientInfo.get(wkrId);
 
             /* Do not preserve obsolete reference, so that the worker can be garbage-collected */
             if (isPurge) {
@@ -88,7 +88,7 @@ public class WorkerPoolImpl implements WorkerPool {
             }
 
             workers.remove(wkrId);
-            workersInfo.remove(wkrId);
+            workersClientInfo.remove(wkrId);
             workerCreatedTimestamps.remove(wkrId);
             workerTimestamps.remove(wkrId);
         }
@@ -104,7 +104,7 @@ public class WorkerPoolImpl implements WorkerPool {
     @Override
     public synchronized void clearWorkers() {
         workers.clear();
-        workersInfo.clear();
+        workersClientInfo.clear();
         workerCreatedTimestamps.clear();
         workerTimestamps.clear();
     }
@@ -180,10 +180,10 @@ public class WorkerPoolImpl implements WorkerPool {
     }
 
     @Override
-    public synchronized Map<String, WorkerClientInfo> getWorkersInfo() {
+    public synchronized Map<String, WorkerClientInfo> getWorkersClientInfo() {
         purge();
 
-        return workersInfo;
+        return workersClientInfo;
     }
 
     @Override

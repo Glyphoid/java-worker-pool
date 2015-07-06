@@ -6,8 +6,12 @@ import me.scai.utilities.clienttypes.ClientTypeMajor;
 import me.scai.utilities.clienttypes.ClientTypeMinor;
 
 import java.net.InetAddress;
+import java.util.Date;
 
 public class WorkerClientInfo {
+    /* Member variables */
+    private Date timeCreated;
+
     private ClientTypeMajor clientTypeMajor;
     private ClientTypeMinor clientTypeMinor;
     private String clientPlatformVersion;
@@ -18,10 +22,13 @@ public class WorkerClientInfo {
     private InetAddress clientIPAddress;
     private String clientHostName;
 
+    /* Constructors */
     public WorkerClientInfo(final InetAddress clientIPAddress,
                             final String clientHostName,
                             final ClientTypeMajor clientTypeMajor,
                             final ClientTypeMinor clientTypeMinor) {
+        this.timeCreated      = new Date();
+
         this.clientIPAddress  = clientIPAddress;
         this.clientHostName   = clientHostName;
 
@@ -55,10 +62,11 @@ public class WorkerClientInfo {
     }
 
 
-
-
-
     /* Getters */
+    public Date getTimeCreated() {
+        return timeCreated;
+    }
+
     public InetAddress getClientIPAddress() {
         return clientIPAddress;
     }

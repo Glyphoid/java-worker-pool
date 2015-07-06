@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class TestWorkerClientTypeInfo {
     @Test
@@ -24,6 +25,8 @@ public class TestWorkerClientTypeInfo {
         assertEquals(ClientTypeMinor.None, clientInfo.getClientTypeMinor());
 
         assertEquals(null, clientInfo.getCustomClientData());
+
+        assertNotNull(clientInfo.getTimeCreated());
     }
 
     @Test
@@ -42,6 +45,8 @@ public class TestWorkerClientTypeInfo {
         assertEquals("0.2", clientInfo.getClientAppVersion());
 
         assertEquals(null, clientInfo.getCustomClientData());
+
+        assertNotNull(clientInfo.getTimeCreated());
     }
 
     @Test
@@ -67,6 +72,8 @@ public class TestWorkerClientTypeInfo {
         assertEquals(800, clientInfo.getCustomClientData().get("ScreenWidth").getAsInt());
         assertEquals(1000, clientInfo.getCustomClientData().get("ScreenHeight").getAsInt());
         assertEquals(null, clientInfo.getCustomClientData().get("colorDepth"));
+
+        assertNotNull(clientInfo.getTimeCreated());
     }
 
     @Test
@@ -94,6 +101,8 @@ public class TestWorkerClientTypeInfo {
         assertEquals(768, clientInfo.getCustomClientData().get("ScreenHeight").getAsInt());
         assertEquals("24 bits", clientInfo.getCustomClientData().get("colorDepth").getAsString());
         assertEquals(null, clientInfo.getCustomClientData().get("microphoneReady"));
+
+        assertNotNull(clientInfo.getTimeCreated());
     }
 
 }

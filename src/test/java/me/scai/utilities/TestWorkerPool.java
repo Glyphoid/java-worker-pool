@@ -85,8 +85,12 @@ public class TestWorkerPool {
         assertEquals(wp.getNumAvailableSlots(), maxNumWorkers);
 
         /* Exhaust the worker pool */
+        String[] workerIds = new String[maxNumWorkers];
+
         for (int i = 0; i < maxNumWorkers; ++i) {
             String newWkrId = wp.registerWorker(new ConcreteWorker(), wkrClientInfo);
+            workerIds[i] = newWkrId;
+
             assertNotNull(newWkrId);
 
             int numSlots = wp.getNumAvailableSlots();
@@ -97,10 +101,18 @@ public class TestWorkerPool {
         String newWkrId1 = wp.registerWorker(new ConcreteWorker(), wkrClientInfo);
         assertNull(newWkrId1);
 
+        /* Remove a worker */
+        assertEquals(0, wp.getNumNormallyRemovedWorkers());
+
+        for (int i = 0; i < 4; ++i) {
+            wp.removeWorker(workerIds[i]);
+            assertEquals(i + 1, wp.getNumNormallyRemovedWorkers());
+        }
+
         /* Wait for all workers to expire */
         Thread.sleep(workerTimeout + 100);
         purgeList = wp.purge();
         assertNotNull(purgeList);
-        assertEquals(purgeList.size(), maxNumWorkers);
+        assertEquals(purgeList.size(), maxNumWorkers - wp.getNumNormallyRemovedWorkers());
     }
 }

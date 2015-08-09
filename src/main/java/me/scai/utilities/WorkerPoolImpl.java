@@ -36,6 +36,7 @@ public class WorkerPoolImpl implements WorkerPool {
     private Map<String, Date> nonPurgeRemovedTimestamps = new ConcurrentHashMap<>();
 
     private int numEverCreatedWorkers = 0;
+    private int numNormallyRemovedWorkers = 0; /* Number of workers that have been removed normally (not purged) */
 
     /* Constructor */
     public WorkerPoolImpl(final int tMaxNumWorkers, final long tWorkerTimeoutMillis) {
@@ -68,8 +69,6 @@ public class WorkerPoolImpl implements WorkerPool {
     }
 
     private synchronized void removeWorker(String wkrId, boolean isPurge) {
-
-
         /* Actually perform the purge */
         if (workers.containsKey(wkrId)) {
             /* Book-keeping */
@@ -80,11 +79,12 @@ public class WorkerPoolImpl implements WorkerPool {
                 purgedWorkers.add(wkrId);
                 purgedWorkersInfo.put(wkrId, purgedClientInfo);
                 purgedTimestamps.put(wkrId, new Date());
-            }
-            else {
+            } else {
                 nonPurgeRemovedWorkers.add(wkrId); /* So that the worker can be garbage-collected */
                 nonPurgeRemovedWorkersInfo.put(wkrId, purgedClientInfo);
                 nonPurgeRemovedTimestamps.put(wkrId, new Date());
+
+                numNormallyRemovedWorkers++;
             }
 
             workers.remove(wkrId);
@@ -205,5 +205,10 @@ public class WorkerPoolImpl implements WorkerPool {
     @Override
     public synchronized int getNumPurgedWorkers() {
         return purgedWorkers.size();
+    }
+
+    @Override
+    public synchronized int getNumNormallyRemovedWorkers() {
+        return numNormallyRemovedWorkers;
     }
 }

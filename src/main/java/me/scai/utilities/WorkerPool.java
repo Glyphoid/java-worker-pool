@@ -87,4 +87,7 @@ public interface WorkerPool {
 
     /* Get timestamp of last use */
     public Date getLastUseTimestamp(String workerId);
+
+    /* Get number of normally removed workers */
+    public int getNumNormallyRemovedWorkers();
 }

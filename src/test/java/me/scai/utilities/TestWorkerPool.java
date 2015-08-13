@@ -2,7 +2,6 @@ package me.scai.utilities;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -10,9 +9,9 @@ import me.scai.utilities.clienttypes.ClientTypeMajor;
 import me.scai.utilities.clienttypes.ClientTypeMinor;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotNull;
+import sun.jdbc.odbc.ee.PoolWorker;
+
+import static org.junit.Assert.*;
 
 /**
  * Created by scai on 4/11/2015.
@@ -44,10 +43,54 @@ public class TestWorkerPool {
     }
 
     @Test
+    public void testInvalidWorkerId() {
+        final String fakeWorkerId = "foo-bar-qux-unlikely-to-be";
+
+        WorkerPool wp = new WorkerPoolImpl(8, 4L * 1000);
+
+        boolean invalidWorkerIdExceptionThrown;
+
+        /* Make sure that the right types of exceptions are thrown under invalid worker ID arguments */
+        invalidWorkerIdExceptionThrown = false;
+        try {
+            PoolWorker pw = wp.getWorker(fakeWorkerId):
+        } catch (IllegalArgumentException exc) {
+            invalidWorkerIdExceptionThrown = true;
+        }
+        assertTrue(invalidWorkerIdExceptionThrown);
+
+        invalidWorkerIdExceptionThrown = false;
+        try {
+            int mc = wp.getMessageCount(fakeWorkerId);
+        } catch (IllegalArgumentException exc) {
+            invalidWorkerIdExceptionThrown = true;
+        }
+        assertTrue(invalidWorkerIdExceptionThrown);
+
+        invalidWorkerIdExceptionThrown = false;
+        try {
+            wp.incrementMessageCount(fakeWorkerId);
+        } catch (IllegalArgumentException exc) {
+            invalidWorkerIdExceptionThrown = true;
+        }
+        assertTrue(invalidWorkerIdExceptionThrown);
+
+        invalidWorkerIdExceptionThrown = false;
+        try {
+            float amr = wp.getCurrentAverageMessageRate(fakeWorkerId);
+        } catch (IllegalArgumentException exc) {
+            invalidWorkerIdExceptionThrown = true;
+        }
+        assertTrue(invalidWorkerIdExceptionThrown);
+
+
+    }
+
+    @Test
     public void testWorkerPool() throws InterruptedException {
 
         final int maxNumWorkers = 8;
-        final long workerTimeout = 4 * 1000;
+        final long workerTimeout = 4L * 1000;
 
         WorkerPool wp = new WorkerPoolImpl(maxNumWorkers, workerTimeout);
 
@@ -57,7 +100,19 @@ public class TestWorkerPool {
         /* Register a new worker */
         String wkrId = wp.registerWorker(new ConcreteWorker(), wkrClientInfo);
 
+        /* Verify that available slots has decreased by 1 */
         assertEquals(wp.getNumAvailableSlots(), maxNumWorkers - 1);
+
+        /* Verify that the initial message count is zero */
+        assertEquals(0, wp.getMessageCount(wkrId));
+
+        /* Increment and verify message count */
+        for (int i = 0; i < 10; ++i) {
+            wp.incrementMessageCount(wkrId);
+            assertEquals(i + 1, wp.getMessageCount(wkrId));
+        }
+
+        assertTrue(wp.getCurrentAverageMessageRate(wkrId) > 0.0f);
 
         /* Wait for a period of time that shouldn't lead to expiration */
         Thread.sleep(workerTimeout / 2);

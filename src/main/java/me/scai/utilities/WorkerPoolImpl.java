@@ -24,6 +24,8 @@ public class WorkerPoolImpl implements WorkerPool {
     private Map<String, Date> workerCreatedTimestamps = new ConcurrentHashMap<>(); /* Time stamps of creation */
     private Map<String, Date> workerTimestamps = new ConcurrentHashMap<>(); /* Time stamps of last usage */
 
+    private Map<String, Integer> workerMessageCounts = new ConcurrentHashMap<>();
+
     /* For keeping track of purged workers */
     private ConcurrentLinkedDeque<String> purgedWorkers = new ConcurrentLinkedDeque<>();
 //    private Map<String, PooledWorker> purgedWorkers = new ConcurrentHashMap<>();
@@ -57,6 +59,8 @@ public class WorkerPoolImpl implements WorkerPool {
 
             workers.put(newWkrId, wkr);
             workersClientInfo.put(newWkrId, wkrClientInfo);
+
+            workerMessageCounts.put(newWkrId, 0);
 
             Date now = new Date();
             workerCreatedTimestamps.put(newWkrId, now);
@@ -111,6 +115,10 @@ public class WorkerPoolImpl implements WorkerPool {
 
     @Override
     public PooledWorker getWorker(String workerId) {
+        if ( !workers.containsKey(workerId) ) {
+            throw new IllegalArgumentException("Invalid worker ID: \"" + workerId + "\"");
+        }
+
         return workers.get(workerId);
     }
 
@@ -211,4 +219,38 @@ public class WorkerPoolImpl implements WorkerPool {
     public synchronized int getNumNormallyRemovedWorkers() {
         return numNormallyRemovedWorkers;
     }
+
+    @Override
+    public synchronized int incrementMessageCount(String workerId) {
+        if (!workerMessageCounts.containsKey(workerId)) {
+            throw new IllegalArgumentException("Invalid worker ID: \"" + workerId + "\"");
+        }
+
+        int c = workerMessageCounts.get(workerId);
+        workerMessageCounts.put(workerId, ++c);
+
+        return c;
+    }
+
+    @Override
+    public synchronized int getMessageCount(String workerId) {
+        if (!workerMessageCounts.containsKey(workerId)) {
+            throw new IllegalArgumentException("Invalid worker ID: \"" + workerId + "\"");
+        }
+
+        return workerMessageCounts.get(workerId);
+    }
+
+    @Override
+    public synchronized float getCurrentAverageMessageRate(String workerId) {
+        if (!workerMessageCounts.containsKey(workerId)) {
+            throw new IllegalArgumentException("Invalid worker ID: \"" + workerId + "\"");
+        }
+
+        final long t  = new Date().getTime();
+        final long t0 = workerCreatedTimestamps.get(workerId).getTime();
+
+        return ((float) workerMessageCounts.get(workerId)) / ((float) (t - t0)) / 1000.0f;
+    }
+
 }

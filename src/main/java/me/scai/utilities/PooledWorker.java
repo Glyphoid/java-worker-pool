@@ -1,9 +1,5 @@
 package me.scai.utilities;
 
-import me.scai.utilities.clienttypes.ClientTypeMajor;
-
-import java.util.Date;
-
 /**
  * Created by scai on 4/11/2015.
  */

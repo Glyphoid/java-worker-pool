@@ -12,16 +12,41 @@ public interface WorkerPool {
 
     /* Register new worker
      *
-     * @param
      * @return   identifier (UUID) of the newly created worker, if successful.
      *           null, if failed.
      */
 
     /* Remove a worker specified by worker ID
      *
-     * @param     identifier (UUID) of the worker to delete
+     * @param    identifier (UUID) of the worker to delete
      */
     public void removeWorker(String workerId);
+
+    /* Increment worker message count
+     *
+     * @param    worker ID
+     * @return   current message count after the incrementing
+     * @throws   IllegalArgumentException on invalid worker ID
+     */
+    public int incrementMessageCount(String workerId);
+
+    /* Get the current message count
+     *
+     * @param    worker ID
+     * @return   current message count
+     * @throws   IllegalArgumentException on invalid worker ID
+     */
+    public int getMessageCount(String workerId);
+
+    /* Get the current average message rate, defined as n_M / (t - t0)
+     *     where in n_M is the current total number of messages, t is the current time,
+     *     and t0 is the time of worker registration
+     *
+     * @param    worker ID
+     * @return   current average message rate (s ^ -1)
+     * @throws   IllegalArgumentException on invalid worker ID
+     */
+    public float getCurrentAverageMessageRate(String workerId);
 
     /* Clear all workers in the pool */
     public void clearWorkers();
@@ -30,6 +55,7 @@ public interface WorkerPool {
      *
      * @param     identifier (UUID) of the worker to get
      * @return    worker (reference)
+     * @throws    IllegalArgumentException if worker ID is invalid
      */
     public PooledWorker getWorker(String workerId);
 

@@ -250,7 +250,7 @@ public class WorkerPoolImpl implements WorkerPool {
         final long t  = new Date().getTime();
         final long t0 = workerCreatedTimestamps.get(workerId).getTime();
 
-        return ((float) workerMessageCounts.get(workerId)) / ((float) (t - t0)) / 1000.0f;
+        return ((float) workerMessageCounts.get(workerId)) / ((float) (t - t0)) * 1000.0f;
     }
 
 
@@ -263,7 +263,7 @@ public class WorkerPoolImpl implements WorkerPool {
         final long t1 = getLastUseTimestamp(workerId).getTime();
         final long t0 = workerCreatedTimestamps.get(workerId).getTime();
 
-        return ((float) workerMessageCounts.get(workerId)) / ((float) (t1 - t0)) / 1000.0f;
+        return ((float) workerMessageCounts.get(workerId)) / ((float) (t1 - t0)) * 1000.0f;
     }
 
 }

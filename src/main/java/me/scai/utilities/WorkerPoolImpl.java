@@ -253,4 +253,17 @@ public class WorkerPoolImpl implements WorkerPool {
         return ((float) workerMessageCounts.get(workerId)) / ((float) (t - t0)) / 1000.0f;
     }
 
+
+    @Override
+    public synchronized float getEffectiveAverageMessageRate(String workerId) {
+        if (!workerMessageCounts.containsKey(workerId)) {
+            throw new IllegalArgumentException("Invalid worker ID: \"" + workerId + "\"");
+        }
+
+        final long t1 = getLastUseTimestamp(workerId).getTime();
+        final long t0 = workerCreatedTimestamps.get(workerId).getTime();
+
+        return ((float) workerMessageCounts.get(workerId)) / ((float) (t1 - t0)) / 1000.0f;
+    }
+
 }

@@ -53,7 +53,7 @@ public class TestWorkerPool {
         /* Make sure that the right types of exceptions are thrown under invalid worker ID arguments */
         invalidWorkerIdExceptionThrown = false;
         try {
-            PoolWorker pw = wp.getWorker(fakeWorkerId):
+            PooledWorker pw = wp.getWorker(fakeWorkerId);
         } catch (IllegalArgumentException exc) {
             invalidWorkerIdExceptionThrown = true;
         }
@@ -78,6 +78,14 @@ public class TestWorkerPool {
         invalidWorkerIdExceptionThrown = false;
         try {
             float amr = wp.getCurrentAverageMessageRate(fakeWorkerId);
+        } catch (IllegalArgumentException exc) {
+            invalidWorkerIdExceptionThrown = true;
+        }
+        assertTrue(invalidWorkerIdExceptionThrown);
+
+        invalidWorkerIdExceptionThrown = false;
+        try {
+            float emr = wp.getEffectiveAverageMessageRate(fakeWorkerId);
         } catch (IllegalArgumentException exc) {
             invalidWorkerIdExceptionThrown = true;
         }
@@ -113,6 +121,7 @@ public class TestWorkerPool {
         }
 
         assertTrue(wp.getCurrentAverageMessageRate(wkrId) > 0.0f);
+        assertTrue(wp.getEffectiveAverageMessageRate(wkrId) > 0.0f);
 
         /* Wait for a period of time that shouldn't lead to expiration */
         Thread.sleep(workerTimeout / 2);

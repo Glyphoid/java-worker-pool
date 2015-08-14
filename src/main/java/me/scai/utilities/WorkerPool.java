@@ -48,6 +48,16 @@ public interface WorkerPool {
      */
     public float getCurrentAverageMessageRate(String workerId);
 
+    /* Get the current average message rate, defined as n_M / (t - t0)
+     *     where in n_M is the current total number of messages, t is the current time,
+     *     and t0 is the time of worker registration
+     *
+     * @param    worker ID
+     * @return   current average message rate (s ^ -1)
+     * @throws   IllegalArgumentException on invalid worker ID
+     */
+    public float getEffectiveAverageMessageRate(String workerId);
+
     /* Clear all workers in the pool */
     public void clearWorkers();
 

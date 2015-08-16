@@ -1,8 +1,5 @@
 package me.scai.utilities;
 
-/**
- * Created by scai on 4/11/2015.
- */
 public interface PooledWorker {
 //    /* Ping the worker to update its last-accessed time stamp to the specified time */
 //    public void ping(Date time);

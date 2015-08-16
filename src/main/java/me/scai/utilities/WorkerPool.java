@@ -10,6 +10,23 @@ import java.util.Map;
 public interface WorkerPool {
     public String registerWorker(PooledWorker wkr, WorkerClientInfo wkrInfo);
 
+    /**
+     * Set previous worker ID, for situations of "relayed" worker
+     *
+     * @param workerId
+     * @param prevWorkerId
+     *
+     */
+    public void setPreviousWorkerId(String workerId, String prevWorkerId);
+
+    /**
+     * Get previous worker ID
+     *
+     * @param workerId
+     * @return
+     */
+    public String getPreviousWorkerId(String workerId);
+
     /* Register new worker
      *
      * @return   identifier (UUID) of the newly created worker, if successful.

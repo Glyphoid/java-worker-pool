@@ -24,6 +24,8 @@ public class WorkerPoolImpl implements WorkerPool {
     private Map<String, Date> workerCreatedTimestamps = new ConcurrentHashMap<>(); /* Time stamps of creation */
     private Map<String, Date> workerTimestamps = new ConcurrentHashMap<>(); /* Time stamps of last usage */
 
+    private Map<String, String> previousWorkerIds = new ConcurrentHashMap<>();
+
     private Map<String, Integer> workerMessageCounts = new ConcurrentHashMap<>();
 
     /* For keeping track of purged workers */
@@ -72,6 +74,30 @@ public class WorkerPoolImpl implements WorkerPool {
         return newWkrId;
     }
 
+
+    @Override
+    public void setPreviousWorkerId(String workerId, String prevWorkerId) {
+        if ( !workers.containsKey(workerId) ) {
+            throw new IllegalArgumentException("Invalid worker ID: \"" + workerId + "\"");
+        }
+
+        previousWorkerIds.put(workerId, prevWorkerId);
+    }
+
+
+    @Override
+    public String getPreviousWorkerId(String workerId) {
+        if ( !workers.containsKey(workerId) ) {
+            throw new IllegalArgumentException("Invalid worker ID: \"" + workerId + "\"");
+        }
+
+        if (!previousWorkerIds.containsKey(workerId)) {
+            return null;
+        } else {
+            return previousWorkerIds.get(workerId);
+        }
+    }
+
     private synchronized void removeWorker(String wkrId, boolean isPurge) {
         /* Actually perform the purge */
         if (workers.containsKey(wkrId)) {
@@ -95,6 +121,11 @@ public class WorkerPoolImpl implements WorkerPool {
             workersClientInfo.remove(wkrId);
             workerCreatedTimestamps.remove(wkrId);
             workerTimestamps.remove(wkrId);
+
+            if (previousWorkerIds.containsKey(wkrId)) {
+                previousWorkerIds.remove(wkrId);
+            }
+
         }
 
 

@@ -179,4 +179,33 @@ public class TestWorkerPool {
         assertNotNull(purgeList);
         assertEquals(purgeList.size(), maxNumWorkers - wp.getNumNormallyRemovedWorkers());
     }
+
+    @Test
+    public void testPreviousWorkerId() {
+        WorkerPool wp = new WorkerPoolImpl(8, 4000L);
+
+        String wkrId = wp.registerWorker(new ConcreteWorker(), wkrClientInfo);
+
+        // Previous worker ID has not been set yet
+        assertNull(wp.getPreviousWorkerId(wkrId));
+
+        // Set and verify previous worker ID
+        final String prevWorkId = wkrId + "_prev";
+        wp.setPreviousWorkerId(wkrId, wkrId + "_prev");
+
+        assertEquals(prevWorkId, wp.getPreviousWorkerId(wkrId));
+
+        // Remove worker ID and then getPreviousWorkerId should throw IllegalArgumentException
+        wp.removeWorker(wkrId);
+
+        boolean exceptionThrown = false;
+        try {
+            String prev = wp.getPreviousWorkerId(wkrId);
+        } catch (IllegalArgumentException exc) {
+            exceptionThrown = true;
+        }
+
+        assertTrue(exceptionThrown);
+
+    }
 }

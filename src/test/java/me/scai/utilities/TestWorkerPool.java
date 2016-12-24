@@ -9,7 +9,6 @@ import me.scai.utilities.clienttypes.ClientTypeMajor;
 import me.scai.utilities.clienttypes.ClientTypeMinor;
 import org.junit.Before;
 import org.junit.Test;
-import sun.jdbc.odbc.ee.PoolWorker;
 
 import static org.junit.Assert.*;
 
